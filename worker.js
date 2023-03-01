@@ -1,12 +1,10 @@
-import { App } from "@octokit/app";
+/*import { App } from "@octokit/app";
 import { verifyWebhookSignature } from "./lib/verify.js";
 
 export default {
-  /**
-   * @param {Request} request
-   * @param {Record<string, any>} env
-   */
-  async fetch(request, env) {
+   // @param {Request} request
+   // @param {Record<string, any>} env
+   async fetch(request, env) {
 
     // wrangler secret put APP_ID
     const appId = env.APP_ID;
@@ -100,3 +98,49 @@ export default {
     }
   },
 };
+*/
+
+
+const http = require('http');
+const url = require('url');
+const fs = require('fs');
+const path = require('path');
+const { translate } = require('./translation');
+
+const server = http.createServer((req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+
+  if (parsedUrl.pathname === '/translate' && req.method === 'GET') {
+    const sourceLang = parsedUrl.query.sourceLang;
+    const targetLang = parsedUrl.query.targetLang;
+    const text = parsedUrl.query.text;
+
+    try {
+      const translatedText = translate(sourceLang, targetLang, text);
+      res.setHeader('Content-Type', 'text/plain');
+      res.end(translatedText);
+    } catch (error) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'text/plain');
+      res.end(error.message);
+    }
+  } else {
+    const filePath = path.join(__dirname, 'index.html');
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'text/plain');
+        res.end('Internal Server Error');
+      } else {
+        res.setHeader('Content-Type', 'text/html');
+        res.end(data);
+      }
+    });
+  }
+});
+
+const port = 3000;
+
+server.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}/`);
+});
