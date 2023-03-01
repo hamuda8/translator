@@ -40,7 +40,7 @@ export default {
           repo: payload.repository.name,
           issue_number: payload.issue.number,
           body:
-            "Hello there from [Cloudflare Workers](https://github.com/gr2m/cloudflare-worker-github-app-example/#readme)",
+           "Hello there from [Cloudflare Workers](https://github.com/gr2m/cloudflare-worker-github-app-example/#readme)",
         }
       );
     });
@@ -52,7 +52,6 @@ export default {
         `<h1>Cloudflare Worker Example GitHub app</h1>
 
 <p>Installation count: ${data.installations_count}</p>
-    
 <p><a href="https://github.com/apps/cloudflare-worker-example">Install</a> | <a href="https://github.com/gr2m/cloudflare-worker-github-app-example/#readme">source code</a></p>`,
         {
           headers: { "content-type": "text/html" },
@@ -125,30 +124,42 @@ async function handleRequest(request, env) {
     appId,
     privateKey,
     webhooks: {
-      secret,
-    },
+      secret
+    }
   });
 
-  app.webhooks.on("issues.opened", async ({ octokit, payload }) => {
+  app.webhooks.on("issues.opened", async function ({ octokit, payload }) {
     await octokit.request(
       "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
       {
-        owner: payload.repository.owner.login,
-        repo: payload.repository.name,
-        issue_number: payload.issue.number,
         body:
-          "Hello there from [Cloudflare Workers](https://github.com/gr2m/cloudflare-worker-github-app-example/#readme)",
+         "Hello there from [Cloudflare Workers](https://github.com/gr2m/cloudflare-worker-github-app-example/#readme)",
+        issue_number: payload.issue.number,
+        owner: payload.repository.owner.login,
+        repo: payload.repository.name
       }
     );
   });
 
+  addEventListener("fetch", function(event) {
+  event.respondWith(handleRequest(event.request))
+})
+
+async function handleRequest(request) {
   if (request.method === "GET" && request.url === "/") {
     // return index.html
     const html = await fetch(request.url + "index.html");
     return new Response(html.body, {
-      headers: { "content-type": "text/html" },
+      headers: { "content-type": "text/html" }
+    });
+  } else {
+    return new Response("Hello, World!", {
+      headers: { "content-type": "text/plain" }
     });
   }
+}
+
+
 
   const id = request.headers.get("x-github-delivery");
   const name = request.headers.get("x-github-event");
@@ -162,8 +173,8 @@ async function handleRequest(request, env) {
   } catch (error) {
     app.log.warn(error.message);
     return new Response(`{ "error": "${error.message}" }`, {
-      status: 400,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json"}
+      status: 400
     });
   }
 
@@ -172,22 +183,22 @@ async function handleRequest(request, env) {
     await app.webhooks.receive({
       id,
       name,
-      payload,
+      payload
     });
 
     return new Response(`{ "ok": true }`, {
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json" }
     });
   } catch (error) {
     app.log.error(error);
 
     return new Response(`{ "error": "${error.message}" }`, {
+      headers: { "content-type": "application/json" }
       status: 500,
-      headers: { "content-type": "application/json" },
     });
   }
 }
 
-addEventListener("fetch", (event) => {
+addEventListener("fetch", function(event) {
   event.respondWith(handleRequest(event.request, process.env));
 });
