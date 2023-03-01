@@ -158,9 +158,6 @@ async function handleRequest(request) {
     });
   }
 }
-   
-addEventListener("fetch", function(event) { 
-event.passThroughOnException() event.respondWith(handleRequest(event.request))}) async function handleRequest(request) { // An error here will return the origin response, as if the Worker wasn’t present. // ... return fetch(request)}
 
   const id = request.headers.get("x-github-delivery");
   const name = request.headers.get("x-github-event");
