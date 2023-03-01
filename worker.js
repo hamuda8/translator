@@ -174,7 +174,6 @@ async function handleRequest(request) {
     app.log.warn(error.message);
     return new Response(`{ "error": "${error.message}" }`, {
       headers: { "content-type": "application/json"}
-      status: 400
     });
   }
 
@@ -194,7 +193,6 @@ async function handleRequest(request) {
 
     return new Response(`{ "error": "${error.message}" }`, {
       headers: { "content-type": "application/json" }
-      status: 500,
     });
   }
 }
