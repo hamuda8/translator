@@ -141,21 +141,31 @@ async function handleRequest(request, env) {
     );
   });
 
-  addEventListener("fetch", function(event) {
+addEventListener("fetch", function(event) {
   event.respondWith(handleRequest(event.request))
 })
 
 async function handleRequest(request) {
-  if (request.method === "GET" && request.url === "/") {
-    // return index.html
-    const html = await fetch(request.url + "index.html");
-    return new Response(html.body, {
-      headers: { "content-type": "text/html" }
-    });
-  } else {
-    return new Response("Hello, World!", {
-      headers: { "content-type": "text/plain" }
-    });
+  try {
+    const url = new URL(request.url)
+    if (request.method === "GET" && url.pathname === "/") {
+      const html = await fetch(url.origin + "/index.html")
+      const response = new Response(html.body, {
+        headers: { "content-type": "text/html" },
+      })
+      return response
+    } else {
+      const response = new Response("Not found", {
+        status: 404,
+        headers: { "content-type": "text/plain" },
+      })
+      return response
+    }
+  } catch (err) {
+    const response = new Response(err.stack || err)
+    response.headers.set("Content-Type", "text/plain")
+    response.status = 500
+    return response
   }
 }
 
